@@ -1,0 +1,75 @@
+import mysql.connector
+
+# Establish a database connection
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="yourusername",
+  password="yourpassword",
+  database="library"
+)
+
+# Define a function to display the available books
+def display_books():
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT * FROM books")
+    books = mycursor.fetchall()
+    for book in books:
+        print("Book ID:", book[0])
+        print("Title:", book[1])
+        print("Author:", book[2])
+        print("Publisher:", book[3])
+        print("Publication Date:", book[4])
+        print("ISBN:", book[5])
+        print("")
+
+# Define a function to add a new book
+def add_book():
+    mycursor = mydb.cursor()
+    title = input("Enter the title of the book: ")
+    author = input("Enter the author of the book: ")
+    publisher = input("Enter the publisher of the book: ")
+    publication_date = input("Enter the publication date of the book (YYYY-MM-DD): ")
+    isbn = input("Enter the ISBN of the book: ")
+    sql = "INSERT INTO books (title, author, publisher, publication_date, isbn) VALUES (%s, %s, %s, %s, %s)"
+    val = (title, author, publisher, publication_date, isbn)
+    mycursor.execute(sql, val)
+    mydb.commit()
+    print(mycursor.rowcount, "book added successfully")
+
+# Define a function to borrow a book
+def borrow_book():
+    mycursor = mydb.cursor()
+    display_books()
+    book_id = int(input("Enter the ID of the book you want to borrow: "))
+    member_id = int(input("Enter your member ID: "))
+    borrow_date = input("Enter the borrow date (YYYY-MM-DD): ")
+    due_date = input("Enter the due date (YYYY-MM-DD): ")
+    sql = "INSERT INTO book_transactions (book_id, member_id, borrow_date, due_date) VALUES (%s, %s, %s, %s)"
+    val = (book_id, member_id, borrow_date, due_date)
+    mycursor.execute(sql, val)
+    mydb.commit()
+    print(mycursor.rowcount, "book borrowed successfully")
+
+# Define a function to return a book
+def return_book():
+    mycursor = mydb.cursor()
+    book_id = int(input("Enter the ID of the book you want to return: "))
+    member_id = int(input("Enter your member ID: "))
+    return_date = input("Enter the return date (YYYY-MM-DD): ")
+    sql = "UPDATE book_transactions SET return_date = %s WHERE book_id = %s AND member_id = %s"
+    val = (return_date, book_id, member_id)
+    mycursor.execute(sql, val)
+    mydb.commit()
+    print(mycursor.rowcount, "book returned successfully")
+
+# Define a function to display the transactions of a member
+def display_transactions():
+    mycursor = mydb.cursor()
+    member_id = int(input("Enter your member ID: "))
+    sql = "SELECT books.title, book_transactions.borrow_date, book_transactions.due_date, book_transactions.return_date FROM books, book_transactions WHERE books.id = book_transactions.book_id AND book_transactions.member_id = %s"
+    val = (member_id,)
+    mycursor.execute(sql, val)
+    transactions = mycursor.fetchall()
+    for transaction in transactions:
+        print("Title:", transaction[0])
+        print("Borrow Date:", transaction[1
